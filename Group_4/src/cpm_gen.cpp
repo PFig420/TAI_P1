@@ -40,7 +40,6 @@ int main(int argc, char* argv[])
     }
 
     unordered_map<string, WordData> word_map;
-    unordered_map<char, int> symbol_counts;
 
     string sequence;
     file >> sequence;
@@ -70,39 +69,30 @@ int main(int argc, char* argv[])
         }
     }
 
-    int total_symbols = 0;
-    for (int i = 0; i < len; i++) {
-        char symb = sequence[i];
-        if (symbol_counts.find(symb) == symbol_counts.end()) {
-            symbol_counts[symb] = 1;
-        } else {
-            symbol_counts[symb]++;
+    // Generate text
+    srand(time(0)); // seed random number generator
+    int max_length = 1000; // maximum length of generated text
+    string seed = sequence.substr(0, word_length);
+    string generated_text = seed;
+    for (int i = 0; i < max_length - word_length; i++) {
+        string curr_word = generated_text.substr(i, word_length);
+        double rand_val = static_cast<double>(rand()) / RAND_MAX; // random number between 0 and 1
+        double sum_prob = 0;
+        char next_symb;
+        for (auto it = word_map.begin(); it != word_map.end(); it++) {
+            if (it->first.substr(0, word_length - 1) == curr_word.substr(1)) {
+                sum_prob += it->second.prob;
+                if (sum_prob > rand_val) {
+                    next_symb = it->second.nextSymb;
+                    break;
+                }
+            }
         }
-        total_symbols++;
+        generated_text += next_symb;
     }
 
-    cout << "List of words and their associated data:" << endl;
-    for (auto it = word_map.begin(); it != word_map.end(); it++) {
-        cout << it->first << ": hits = " << it->second.hits
-             << ", fails = " << it->second.fails
-             << ", prob = " << it->second.prob
-             << ", nextSymb = " << it->second.nextSymb
-             << ", num_consecutive_fails = " << it->second.num_consecutive_fails << endl;
-    }
-
-    double total_bits = 0.0;
-
-    cout << "\nList of symbols and their associated probabilities:" << endl;
-    for (auto it = symbol_counts.begin(); it != symbol_counts.end(); it++) {
-        double prob = static_cast<double>(it->second) / total_symbols;
-        total_bits += -log2(prob);
-        cout << it->first << ": " << prob << endl;
-    }
-
-    double avg_bits_per_symbol = total_bits / total_symbols;
-
-    cout << "\nEstimated total number of bits: " << total_bits << endl;
-    cout << "Average number of bits per symbol: " << avg_bits_per_symbol << endl;
+    cout << "Generated text:" << endl;
+    cout << generated_text << endl;
 
     return 0;
 }
