@@ -23,4 +23,4 @@ Then, to run the programs we have to go to bin folder and execute the two comman
 
  ./cpm filename word_length threshold min_prob max_num_fails max_length_gen_text
 
- Example: ./cpm_gen chry.txt 4 0.5 0.4 3
+ Example: ./cpm_gen chry.txt 4 0.5 0.4 3 1000
