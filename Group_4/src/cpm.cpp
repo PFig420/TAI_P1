@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 
         if (word_map.find(word) == word_map.end()) {
             // Word not found in map, initialize entry
-            word_map[word] = {1, 0, 0.5, sequence[i + word_length]};
+            word_map[word] = {0, 0, 0.5, sequence[i + word_length]};
         } else {
             // Word found in map, update values
             if (sequence[i + word_length] == word_map[word].nextSymb) {
@@ -61,8 +61,12 @@ int main(int argc, char* argv[])
                 word_map[word].fails++;
                 word_map[word].num_consecutive_fails++;
             }
+
             if (word_map[word].num_consecutive_fails >= max_num_fails || word_map[word].prob < min_prob) {
-                word_map.erase(word);
+                word_map[word].nextSymb = sequence[i + word_length];
+                if (word_map[word].num_consecutive_fails >= max_num_fails){
+                    word_map[word].num_consecutive_fails = 0;
+                }
             } else {
                 word_map[word].prob = static_cast<double>(word_map[word].hits + threshold) / (word_map[word].hits + word_map[word].fails + 2 * threshold);
                 word_map[word].nextSymb = sequence[i + word_length];
@@ -92,11 +96,8 @@ int main(int argc, char* argv[])
 
     double total_bits = 0.0;
 
-    cout << "\nList of symbols and their associated probabilities:" << endl;
-    for (auto it = symbol_counts.begin(); it != symbol_counts.end(); it++) {
-        double prob = static_cast<double>(it->second) / total_symbols;
-        total_bits += -log2(prob);
-        cout << it->first << ": " << prob << endl;
+    for (auto it = word_map.begin(); it != word_map.end(); it++) {   
+        total_bits += -log2(it->second.prob);
     }
 
     double avg_bits_per_symbol = total_bits / total_symbols;
